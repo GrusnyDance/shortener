@@ -6,23 +6,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"shortener/internal/service"
 	pb "shortener/proto/generate"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
-
-type server struct {
-	pb.UnimplementedGreeterServer
-}
-
-func (s *server) SayHello(ctx context.Context, request *pb.HelloRequest) (*pb.HelloResponse, error) {
-	name := request.Name
-	response := &pb.HelloResponse{
-		Message: "Hello " + name,
-	}
-	return response, nil
-}
 
 func main() {
 	// Create a listener on TCP port
@@ -30,28 +19,29 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to listen:", err)
 	}
+	defer lis.Close() // надо ли?
 
-	// Create a gRPC server object
+	// Create a gRPC service object
 	s := grpc.NewServer()
-	// Attach the Greeter service to the server
-	pb.RegisterGreeterServer(s, &server{})
-	// Serve gRPC server
+	// Attach the Shortener service to the service
+	pb.RegisterShortenerServer(s, service.New())
+	// Serve gRPC service
 	log.Println("Serving gRPC on connection ")
 	go func() {
 		log.Fatalln(s.Serve(lis))
 	}()
 
 	// Client connection is used by the gRPC-Gateway to forward
-	// incoming HTTP/REST requests to the gRPC server for processing
+	// incoming HTTP/REST requests to the gRPC service for processing
 	conn, err := grpc.Dial("localhost:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalln("Failed to dial server:", err)
+		log.Fatalln("Failed to dial service:", err)
 	}
 	defer conn.Close()
 
 	mux := runtime.NewServeMux()
-	// Register Greeter
-	err = pb.RegisterGreeterHandler(context.Background(), mux, conn)
+	// Register Shortener
+	err = pb.RegisterShortenerHandler(context.Background(), mux, conn)
 	if err != nil {
 		log.Fatalln("Failed to register gateway:", err)
 	}

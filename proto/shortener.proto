@@ -1,0 +1,35 @@
+syntax = "proto3";
+option go_package="./.;pb";
+
+import "google/api/annotations.proto";
+
+service Shortener {
+  rpc Post (PostRequest) returns (PostResponse) {
+    option (google.api.http) = {
+      post: "/post"
+      body: "*"
+    };
+  }
+
+  rpc Get (GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/get/{link}"
+    };
+  }
+}
+
+message PostRequest {
+  string LinkToHash = 1;
+}
+
+message PostResponse {
+  string HashedLink = 1;
+}
+
+message GetRequest {
+  string HashedLink = 1;
+}
+
+message GetResponse {
+  string OriginalLink = 1;
+}
