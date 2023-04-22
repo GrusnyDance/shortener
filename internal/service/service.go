@@ -3,32 +3,52 @@ package service
 import (
 	"context"
 	"errors"
+	"shortener/internal/entities"
+	"shortener/pkg/hasher"
 	pb "shortener/proto/generate"
 )
 
 // Service implements gRPC server
 type Service struct {
 	pb.UnimplementedShortenerServer
-	//repo Rep
+	repo entities.Repository
 }
 
 // New is a constructor for Service
-func New() *Service {
-	return &Service{}
+func New(r entities.Repository) *Service {
+	return &Service{repo: r}
 }
 
 func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostResponse, error) {
-	//l := request.LinkToHash
+	hash := hasher.Apply(request.LinkToHash)
+	err := s.repo.CheckIfHashedExists(ctx, hash)
+	if err == nil {
+		return nil, errors.New("link exists already")
+	}
+	err = s.repo.CreateLink(ctx, hash, request.LinkToHash)
+	if err != nil {
+		return nil, errors.New("link cannot be saved")
+	}
 	response := &pb.PostResponse{
-		HashedLink: "Hello baby",
+		HashedLink: hash,
 	}
 	return response, nil
 }
 
 func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
-	//l := request.LinkToHash
-	response := &pb.GetResponse{
-		OriginalLink: "Byebye baby",
+	hash := request.HashedLink
+	err := s.repo.CheckIfHashedExists(ctx, hash)
+	if err != nil && errors.Is(err, errors.New("link not found")) {
+		return nil, errors.New("link does not exist")
+	} else if err != nil {
+		return nil, errors.New("connection to db failed")
 	}
-	return response, errors.New("not found")
+	link, er := s.repo.ReturnLink(ctx, hash)
+	if er != nil {
+		return nil, errors.New("original link cannot be received")
+	}
+	response := &pb.GetResponse{
+		OriginalLink: link,
+	}
+	return response, nil
 }

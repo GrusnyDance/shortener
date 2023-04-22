@@ -17,5 +17,7 @@ run:
 	go run cmd/main.go
 
 stop:
-	#pkill -f "./cmd/main.go"
 	fuser -k 8080/tcp
+
+#migration:
+#	goose create create_table go

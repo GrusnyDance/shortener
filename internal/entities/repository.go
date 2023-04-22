@@ -1,9 +1,11 @@
 package entities
 
+import "context"
+
 // Service interface would be here if not defined in proto
 
 type Repository interface {
-	CreateLink(original string, hashed string) string
-	ReturnLink(hashed string) string
-	CheckIfOriginalExists(original string) error
+	CreateLink(ctx context.Context, hashed string, original string) error
+	ReturnLink(ctx context.Context, hashed string) (string, error)
+	CheckIfHashedExists(ctx context.Context, hashed string) error
 }

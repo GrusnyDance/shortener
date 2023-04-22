@@ -1,0 +1,7 @@
+storage:
+  host: localhost
+  port: 5432
+  username: grusnydance
+  password: 1234
+  dbname: links
+  timeout: 5
