@@ -27,13 +27,10 @@ proto-generate:
 ###############################################################################################################
 
 test_post:
-	curl --location --request POST 'http://localhost:8085/post' \
-	--header 'Content-Type: application/json' \
-    --data-raw '{"data": "lalala"}'
+	curl --location --request POST 'http://localhost:8085/post' --header 'Content-Type: application/json' --data-raw '{"data": "lalala"}'
 
 test_get:
-	curl --location --request GET 'http://localhost:8085/get/lalala' \
-	--header 'Content-Type: application/json'
+	curl --location --request GET 'http://localhost:8085/get/lalala' --header 'Content-Type: application/json'
 
 #run:
 #	go run cmd/main.go

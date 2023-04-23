@@ -3,7 +3,7 @@ services:
   database:
     container_name: "pgdb"
     image: postgres
-#    restart: always
+    restart: always
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
@@ -18,13 +18,13 @@ services:
     container_name: "myserver"
     build:
       context: .
-#      dockerfile: Dockerfile
+      dockerfile: Dockerfile
     environment:
       - DB_HOST=database
     ports:
-      - ":8080"
-      - ":8085"
-#    restart: unless-stopped
+      - "8080:8080"
+      - "8085:8085"
+    restart: unless-stopped
     tty: true
     depends_on:
       - database

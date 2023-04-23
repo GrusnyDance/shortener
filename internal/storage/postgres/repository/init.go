@@ -11,6 +11,7 @@ import (
 )
 
 func Init() (*Instance, error) {
+	fmt.Println("I AM INIT")
 	// Create config
 	poolConfig, err := NewPoolConfig()
 	fmt.Println("pool config is ", poolConfig.ConnString())
