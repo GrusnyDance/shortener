@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"shortener/internal/entities"
 	"shortener/pkg/hasher"
 	pb "shortener/proto/generate"
@@ -12,13 +12,13 @@ import (
 // Service implements gRPC server
 type Service struct {
 	pb.UnimplementedShortenerServer
-	repo entities.Repository
+	repo   entities.Repository
+	logger *logrus.Logger
 }
 
 // New is a constructor for Service
-func New(r entities.Repository) *Service {
-	fmt.Println("starting service")
-	return &Service{repo: r}
+func New(r entities.Repository, log *logrus.Logger) *Service {
+	return &Service{repo: r, logger: log}
 }
 
 func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostResponse, error) {
@@ -39,7 +39,6 @@ func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostRe
 
 func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
 	hash := request.HashedLink
-	fmt.Println("hash is", hash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err != nil && errors.Is(err, errors.New("link not found")) {
 		return nil, errors.New("link does not exist")

@@ -8,22 +8,33 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
-      - PGDATA=/tmp
     volumes:
       - data:/var/lib/postgresql/data/
-  server:
-    container_name: "myserver"
+  server_postgres:
+    container_name: "serverpg"
     build:
       context: .
-      dockerfile: Dockerfile
     environment:
-      - DB_HOST=database
+      - ENABLE_DB=true
     ports:
-#      - "8080:8080"
+      - "8085:8085"
+    restart: unless-stopped
+    depends_on:
+      - database
+    tty: true
+    volumes:
+      - ./log.txt:/build/log.txt
+  server_cache:
+    container_name: "server_cache"
+    build:
+      context: .
+    environment:
+        - ENABLE_DB=false
+    ports:
       - "8085:8085"
     restart: unless-stopped
     tty: true
-    depends_on:
-      - database
+    volumes:
+      - .:.
 volumes:
   data:

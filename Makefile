@@ -1,9 +1,10 @@
 # на моем линуксе докер запускается c docker compose, без dash
-run:
-	docker compose up -d --build --force-recreate
 
-run_not_detached:
-	docker compose up --build --force-recreate
+run_pg:
+	docker compose up server_postgres --build --force-recreate
+
+run_cache:
+	docker compose up server_cache --build --force-recreate
 
 stop:
 	docker compose down
@@ -14,17 +15,13 @@ clean:
 	docker rm $$(docker ps -a -q) || true
 	docker rmi $$(docker images -a -q) || true
 
-docker-test-server:
-	docker build --no-cache -t server -f Dockerfile .
-	docker run --privileged server
+###############################################################################################################
 
 proto-generate:
 	protoc -I ./proto --go_out=proto/generate \
 	--go-grpc_out=proto/generate \
 	--grpc-gateway_out=proto/generate \
 	shortener.proto
-
-###############################################################################################################
 
 test_post:
 	curl --location --request POST 'http://localhost:8085/post' \
