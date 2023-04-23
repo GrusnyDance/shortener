@@ -10,9 +10,10 @@ import (
 	_ "shortener/internal/storage/postgres/migrations"
 )
 
-func InitRep() (*pgxpool.Pool, error) {
+func Init() (*Instance, error) {
 	// Create config
 	poolConfig, err := NewPoolConfig()
+	fmt.Println("pool config is ", poolConfig.ConnString())
 	if err != nil {
 		return nil, fmt.Errorf("Pool config error: %v\n", err)
 	}
@@ -40,7 +41,9 @@ func InitRep() (*pgxpool.Pool, error) {
 	}
 	mdb.Close()
 
-	return pool, nil
+	return &Instance{
+		Db: pool,
+	}, nil
 }
 
 // Wrapper for pool connection

@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  database:
+    container_name: "pgdb"
+    image: postgres
+#    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - PGDATA=/tmp
+#    ports:
+#      - ":5432"
+    volumes:
+      - data:/var/lib/postgresql/data/
+#    command: -p 5432
+  server:
+    container_name: "myserver"
+    build:
+      context: .
+#      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=database
+    ports:
+      - ":8080"
+      - ":8085"
+#    restart: unless-stopped
+    tty: true
+    depends_on:
+      - database
+volumes:
+  data:

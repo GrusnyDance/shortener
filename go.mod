@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/jackc/pgx/v4 v4.18.1
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.8
 	github.com/pressly/goose v2.7.0+incompatible
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
