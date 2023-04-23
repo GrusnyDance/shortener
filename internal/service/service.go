@@ -22,14 +22,18 @@ func New(r entities.Repository, log *logrus.Logger) *Service {
 }
 
 func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostResponse, error) {
+	s.logger.Infoln("post, original link is", request.LinkToHash)
+
 	hash := hasher.Apply(request.LinkToHash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err == nil {
-		return nil, errors.New("link exists already")
+		s.logger.Error(entities.ErrLinkExists)
+		return nil, entities.ErrLinkExists
 	}
 	err = s.repo.CreateLink(ctx, hash, request.LinkToHash)
 	if err != nil {
-		return nil, errors.New("link cannot be saved")
+		s.logger.Error(entities.ErrStorage)
+		return nil, entities.ErrStorage
 	}
 	response := &pb.PostResponse{
 		HashedLink: hash,
@@ -38,16 +42,21 @@ func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostRe
 }
 
 func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
+	s.logger.Infoln("get, hashed link is", request.HashedLink)
+
 	hash := request.HashedLink
 	err := s.repo.CheckIfHashedExists(ctx, hash)
-	if err != nil && errors.Is(err, errors.New("link not found")) {
-		return nil, errors.New("link does not exist")
+	if err != nil && errors.Is(err, entities.ErrNotFound) {
+		s.logger.Error(entities.ErrNotFound)
+		return nil, entities.ErrNotFound
 	} else if err != nil {
-		return nil, err
+		s.logger.Error(entities.ErrStorage)
+		return nil, entities.ErrStorage
 	}
 	link, er := s.repo.ReturnLink(ctx, hash)
 	if er != nil {
-		return nil, errors.New("original link cannot be received")
+		s.logger.Error(entities.ErrStorage)
+		return nil, entities.ErrStorage
 	}
 	response := &pb.GetResponse{
 		OriginalLink: link,

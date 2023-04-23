@@ -1,5 +1,4 @@
 # на моем линуксе докер запускается c docker compose, без dash
-
 run_pg:
 	docker compose up server_postgres --build --force-recreate
 
