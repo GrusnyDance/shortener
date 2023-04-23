@@ -35,6 +35,6 @@ services:
     restart: unless-stopped
     tty: true
     volumes:
-      - .:.
+      - ./log.txt:/build/log.txt
 volumes:
   data:

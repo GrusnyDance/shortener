@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"shortener/internal/entities"
 	"shortener/pkg/hasher"
 	pb "shortener/proto/generate"
@@ -27,13 +29,11 @@ func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostRe
 	hash := hasher.Apply(request.LinkToHash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err == nil {
-		s.logger.Error(entities.ErrLinkExists)
-		return nil, entities.ErrLinkExists
+		return nil, s.ProcessErr(entities.ErrLinkExists, codes.AlreadyExists)
 	}
 	err = s.repo.CreateLink(ctx, hash, request.LinkToHash)
 	if err != nil {
-		s.logger.Error(entities.ErrStorage)
-		return nil, entities.ErrStorage
+		return nil, s.ProcessErr(entities.ErrStorage, codes.Unavailable)
 	}
 	response := &pb.PostResponse{
 		HashedLink: hash,
@@ -47,19 +47,22 @@ func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetRespo
 	hash := request.HashedLink
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err != nil && errors.Is(err, entities.ErrNotFound) {
-		s.logger.Error(entities.ErrNotFound)
-		return nil, entities.ErrNotFound
+		return nil, s.ProcessErr(entities.ErrNotFound, codes.NotFound)
 	} else if err != nil {
-		s.logger.Error(entities.ErrStorage)
-		return nil, entities.ErrStorage
+		return nil, s.ProcessErr(entities.ErrStorage, codes.Unavailable)
 	}
 	link, er := s.repo.ReturnLink(ctx, hash)
 	if er != nil {
-		s.logger.Error(entities.ErrStorage)
-		return nil, entities.ErrStorage
+		return nil, s.ProcessErr(entities.ErrStorage, codes.Unavailable)
 	}
 	response := &pb.GetResponse{
 		OriginalLink: link,
 	}
 	return response, nil
+}
+
+func (s *Service) ProcessErr(er error, code codes.Code) error {
+	st := status.New(code, er.Error())
+	s.logger.Error(entities.ErrLinkExists)
+	return st.Err()
 }
