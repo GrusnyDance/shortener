@@ -22,8 +22,6 @@ func New(r entities.Repository) *Service {
 }
 
 func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostResponse, error) {
-	fmt.Println("I AM POST")
-	fmt.Println("req is ", request.LinkToHash)
 	hash := hasher.Apply(request.LinkToHash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err == nil {
@@ -41,6 +39,7 @@ func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostRe
 
 func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
 	hash := request.HashedLink
+	fmt.Println("hash is", hash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err != nil && errors.Is(err, errors.New("link not found")) {
 		return nil, errors.New("link does not exist")

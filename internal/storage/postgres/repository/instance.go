@@ -19,21 +19,21 @@ type Link struct {
 	Original string
 }
 
-func (i *Instance) ReturnLink(ctx context.Context, hashed string) (string, error) {
+func (i *Instance) ReturnLink(ctx context.Context, hash string) (string, error) {
 	var link Link
 	var err error
-	row := i.Db.QueryRow(ctx, "SELECT * FROM links WHERE hashed=$1 LIMIT 1;", hashed)
-	if err = row.Scan(&link); err != nil {
+	row := i.Db.QueryRow(ctx, "SELECT * FROM links WHERE hashed = $1 LIMIT 1;", hash)
+	if err = row.Scan(&link.Id, &link.Created, &link.Hash, &link.Original); err != nil {
 		return "", errors.New("scan failed")
 	}
 	return link.Original, err
 }
 
-func (i *Instance) CheckIfHashedExists(ctx context.Context, hashed string) error {
+func (i *Instance) CheckIfHashedExists(ctx context.Context, hash string) error {
 	var link Link
 	var err error
-	row := i.Db.QueryRow(ctx, "SELECT * FROM links WHERE hashed=$1 LIMIT 1;", hashed)
-	if err = row.Scan(&link); err == pgx.ErrNoRows {
+	row := i.Db.QueryRow(ctx, "SELECT * FROM links WHERE hashed = $1 LIMIT 1;", hash)
+	if err = row.Scan(&link.Id, &link.Created, &link.Hash, &link.Original); err == pgx.ErrNoRows {
 		return errors.New("link not found")
 	}
 	return err
