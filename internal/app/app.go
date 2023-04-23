@@ -10,15 +10,17 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"shortener/internal/entities"
 	"shortener/internal/service"
 	"shortener/internal/storage/cache"
 	"shortener/internal/storage/postgres/repository"
 	pb "shortener/proto/generate"
+	"syscall"
 )
 
 func Start() {
-	// Setup logging.
+	// Setup logging
 	f, err := os.OpenFile("log.txt", os.O_WRONLY|os.O_CREATE, 0755)
 	if err != nil {
 		l.Fatal(err)
@@ -43,14 +45,13 @@ func Start() {
 
 	// Attach the Shortener service to the service
 	pb.RegisterShortenerServer(s, service.New(instance, logger))
-	// Serve gRPC service
 	logger.Infoln("Serving gRPC on connection ")
 	go func() {
 		logger.Fatalln(s.Serve(lis))
 	}()
 
 	// Client connection is used by the gRPC-Gateway to forward
-	// incoming HTTP/REST requests to the gRPC service for processing
+	// incoming HTTP/REST requests to the gRPC service
 	conn, err := grpc.Dial(os.Getenv("GRPC_PORT"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatalln("Failed to dial service:", err)
@@ -59,7 +60,8 @@ func Start() {
 
 	mux := runtime.NewServeMux()
 	// Register Shortener
-	err = pb.RegisterShortenerHandler(context.Background(), mux, conn)
+	ctx, cancel := context.WithCancel(context.Background())
+	err = pb.RegisterShortenerHandler(ctx, mux, conn)
 	if err != nil {
 		logger.Fatalln("Failed to register gateway:", err)
 	}
@@ -68,6 +70,24 @@ func Start() {
 		Addr:    os.Getenv("HTTP_PROXY_PORT"),
 		Handler: mux,
 	}
+
+	// Graceful
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-sigCh:
+			logger.Infoln("Received shutdown signal, initiating graceful shutdown")
+			s.GracefulStop()
+			if err = gwServer.Shutdown(ctx); err != nil {
+				logger.Fatalln("error finishing http", err)
+			}
+			instance.Close()
+			cancel()
+		}
+	}()
 
 	logger.Infoln("Serving gRPC-Gateway on connection")
 	logger.Fatalln(gwServer.ListenAndServe())

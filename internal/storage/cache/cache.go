@@ -36,3 +36,8 @@ func (c *Cache) CreateLink(ctx context.Context, hashed string, original string) 
 	c.Unlock()
 	return nil
 }
+
+func (c *Cache) Close() {
+	// Gives pointer to previous map to GC
+	c.Map = make(map[string]string)
+}

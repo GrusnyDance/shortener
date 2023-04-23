@@ -8,4 +8,5 @@ type Repository interface {
 	CreateLink(ctx context.Context, hashed string, original string) error
 	ReturnLink(ctx context.Context, hashed string) (string, error)
 	CheckIfHashedExists(ctx context.Context, hashed string) error
+	Close()
 }

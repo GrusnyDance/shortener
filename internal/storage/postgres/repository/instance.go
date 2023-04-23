@@ -45,3 +45,7 @@ func (i *Instance) CreateLink(ctx context.Context, hashed string, original strin
 		time.Now(), hashed, original)
 	return err
 }
+
+func (i *Instance) Close() {
+	i.Db.Close()
+}
