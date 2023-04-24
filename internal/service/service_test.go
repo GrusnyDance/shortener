@@ -74,9 +74,9 @@ func TestPostLinkExists(t *testing.T) {
 		LinkToHash: "https://example.com",
 	}
 
-	response, expectedHash, err := BasicPost(mockRepo, service)
+	_, expectedHash, _ := BasicPost(mockRepo, service)
 	mockRepo.EXPECT().CheckIfHashedExists(ctx, expectedHash).Return(nil)
-	response, err = service.Post(ctx, request)
+	response, err := service.Post(ctx, request)
 
 	assert.Error(t, err)
 	assert.Nil(t, response)

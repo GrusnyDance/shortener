@@ -6,7 +6,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"net/url"
 	"os"
-	"strconv"
 )
 
 // Connection settings
@@ -40,7 +39,6 @@ func NewPoolConfig() (*pgxpool.Config, error) {
 	if err = decoder.Decode(&config); err != nil {
 		return nil, err
 	}
-	timeout, _ := strconv.Atoi(config.Storage.Timeout)
 
 	connStr := fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=disable&connect_timeout=%s",
 		"postgres",
@@ -49,7 +47,7 @@ func NewPoolConfig() (*pgxpool.Config, error) {
 		config.Storage.Host,
 		config.Storage.Port,
 		config.Storage.DbName,
-		timeout)
+		config.Storage.Timeout)
 
 	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
