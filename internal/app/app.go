@@ -42,6 +42,7 @@ func Start() {
 	if er != nil {
 		logger.Fatalln(er)
 	}
+	defer instance.Close()
 
 	// Attach the Shortener service to the service
 	pb.RegisterShortenerServer(s, service.New(instance, logger))
@@ -84,7 +85,6 @@ func Start() {
 			if err = gwServer.Shutdown(ctx); err != nil {
 				logger.Fatalln("error finishing http", err)
 			}
-			instance.Close()
 			cancel()
 		}
 	}()

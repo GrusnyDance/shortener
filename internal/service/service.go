@@ -26,6 +26,9 @@ func New(r entities.Repository, log *logrus.Logger) *Service {
 func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostResponse, error) {
 	s.logger.Infoln("post, original link is", request.LinkToHash)
 
+	if request.LinkToHash == "" {
+		return nil, s.ProcessErr(entities.ErrEmptyLink, codes.InvalidArgument)
+	}
 	hash := hasher.Apply(request.LinkToHash)
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err == nil {
@@ -44,6 +47,9 @@ func (s *Service) Post(ctx context.Context, request *pb.PostRequest) (*pb.PostRe
 func (s *Service) Get(ctx context.Context, request *pb.GetRequest) (*pb.GetResponse, error) {
 	s.logger.Infoln("get, hashed link is", request.HashedLink)
 
+	if request.HashedLink == "" {
+		return nil, s.ProcessErr(entities.ErrEmptyLink, codes.InvalidArgument)
+	}
 	hash := request.HashedLink
 	err := s.repo.CheckIfHashedExists(ctx, hash)
 	if err != nil && errors.Is(err, entities.ErrNotFound) {

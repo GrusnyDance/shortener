@@ -20,6 +20,9 @@ func Init() *Cache {
 
 func (c *Cache) ReturnLink(ctx context.Context, hash string) (string, error) {
 	link := c.Map[hash]
+	if link == "" {
+		return link, errors.New("link not found")
+	}
 	return link, nil
 }
 

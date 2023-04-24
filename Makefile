@@ -22,6 +22,10 @@ proto-generate:
 	--grpc-gateway_out=proto/generate \
 	shortener.proto
 
+mock:
+	mockgen -source=internal/entities/repository.go \
+	-destination=internal/storage/postgres/repository/tests/mock_instance.go
+
 test_post:
 	curl --location --request POST 'http://localhost:8085/post' \
 	--header 'Content-Type: application/json' \
