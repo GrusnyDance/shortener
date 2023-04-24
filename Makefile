@@ -1,12 +1,27 @@
 # на моем линуксе докер запускается c docker compose, без dash
 run_pg:
+ifeq ($(shell uname), Linux)
 	docker compose up server_postgres --build --force-recreate
+else
+	docker-compose up server_postgres --build --force-recreate
+endif
 
 run_cache:
+ifeq ($(shell uname), Linux)
 	docker compose up server_cache --build --force-recreate
+else
+	docker-compose up server_cache --build --force-recreate
+endif
+
+test:
+	go test --race ./internal/service ./internal/storage/cache ./pkg/hasher
 
 stop:
+ifeq ($(shell uname), Linux)
 	docker compose down
+else
+	docker-compose down
+endif
 
 clean:
 # возможно на маке не нужны отражающие символы

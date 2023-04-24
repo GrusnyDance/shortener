@@ -1,4 +1,0 @@
-time="2023-04-23T20:31:13Z" level=info msg="Serving gRPC on connection "
-time="2023-04-23T20:31:13Z" level=info msg="Serving gRPC-Gateway on connection"
-time="2023-04-23T20:31:16Z" level=info msg="Received shutdown signal, initiating graceful shutdown"
-time="2023-04-23T20:31:16Z" level=fatal msg="<nil>"
