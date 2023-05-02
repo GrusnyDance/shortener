@@ -19,6 +19,8 @@ func Init() *Cache {
 }
 
 func (c *Cache) ReturnLink(ctx context.Context, hash string) (string, error) {
+	c.RLock()
+	defer c.RUnlock()
 	link := c.Map[hash]
 	if link == "" {
 		return link, errors.New("link not found")
@@ -27,6 +29,8 @@ func (c *Cache) ReturnLink(ctx context.Context, hash string) (string, error) {
 }
 
 func (c *Cache) CheckIfHashedExists(ctx context.Context, hash string) error {
+	c.RLock()
+	defer c.RUnlock()
 	if _, exist := c.Map[hash]; !exist {
 		return errors.New("link not found")
 	}
@@ -35,8 +39,8 @@ func (c *Cache) CheckIfHashedExists(ctx context.Context, hash string) error {
 
 func (c *Cache) CreateLink(ctx context.Context, hashed string, original string) error {
 	c.Lock()
+	defer c.Unlock()
 	c.Map[hashed] = original
-	c.Unlock()
 	return nil
 }
 
